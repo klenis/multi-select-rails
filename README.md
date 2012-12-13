@@ -1,6 +1,6 @@
 # Multiselect for Rails asset pipeline
 
-[multi-select](https://github.com/lou/multi-select) is a tiny jQuery plugin to customize selects with the multiple attribute. 
+[multi-select](https://github.com/lou/multi-select) is a tiny jQuery plugin to customize selects with the multiple attribute.
 
 The `multi-select-rails` gem integrates `multi-select` with the Rails asset pipeline.
 
@@ -14,13 +14,13 @@ Include `multi-select-rails` in Gemfile
 
 Then run `bundle install`
 
-### Include multiselect javascript assets
+### Include multiselect javascript
 
 Add to your `app/assets/javascripts/application.js`
 
     //= require multi-select
 
-### Include multiselect stylesheet assets
+### Include multiselect stylesheet
 
 Add to your `app/assets/stylesheets/application.css`
 
