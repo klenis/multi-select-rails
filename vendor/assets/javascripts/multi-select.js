@@ -1,5 +1,5 @@
 /*
-* MultiSelect v0.9.2
+* MultiSelect v0.9.3
 * Copyright (c) 2012 Louis Cuny
 *
 * This program is free software. It comes without any warranty, to
@@ -104,9 +104,19 @@
             var selectableLi = $('<li '+attributes+'><span>'+$(this).text()+'</span></li>'),
                 selectedLi = selectableLi.clone();
 
-            var value = $(this).val();
-            selectableLi.addClass('ms-elem-selectable').attr('id', value+'-selectable');
-            selectedLi.addClass('ms-elem-selection').attr('id', value+'-selection').hide();
+            var value = $(this).val(),
+                msId = that.sanitize(value);
+
+            selectableLi
+              .data('ms-value', value)
+              .addClass('ms-elem-selectable')
+              .attr('id', msId+'-selectable');
+
+            selectedLi
+              .data('ms-value', value)
+              .addClass('ms-elem-selection')
+              .attr('id', msId+'-selection')
+              .hide();
 
             that.$selectionUl.find('.ms-optgroup-label').hide();
 
@@ -125,15 +135,17 @@
           }
         });
 
-        if (that.options.selectableHeader){
+        if (that.options.selectableHeader)
           that.$selectableContainer.append(that.options.selectableHeader);
-        }
         that.$selectableContainer.append(that.$selectableUl);
-        
-        if (that.options.selectionHeader){
+        if (that.options.selectableFooter)
+          that.$selectableContainer.append(that.options.selectableFooter);
+
+        if (that.options.selectionHeader)
           that.$selectionContainer.append(that.options.selectionHeader);
-        }
-        this.$selectionContainer.append(that.$selectionUl);
+        that.$selectionContainer.append(that.$selectionUl);
+        if (that.options.selectionFooter)
+          that.$selectionContainer.append(that.options.selectionFooter);
 
         that.$container.append(that.$selectableContainer);
         that.$container.append(that.$selectionContainer);
@@ -147,17 +159,17 @@
 
         if(that.options.dblClick) {
           that.$selectableUl.on('dblclick', '.ms-elem-selectable', function(){
-            that.select($(this).attr('id').replace(/-selectable/, ''));
+            that.select($(this).data('ms-value'));
           });
           that.$selectionUl.on('dblclick', '.ms-elem-selection', function(){
-            that.deselect($(this).attr('id').replace(/-selection/, ''));
+            that.deselect($(this).data('ms-value'));
           });
         } else {
           that.$selectableUl.on('click', '.ms-elem-selectable', function(){
-            that.select($(this).attr('id').replace(/-selectable/, ''));
+            that.select($(this).data('ms-value'));
           });
           that.$selectionUl.on('click', '.ms-elem-selection', function(){
-            that.deselect($(this).attr('id').replace(/-selection/, ''));
+            that.deselect($(this).data('ms-value'));
           });
         }
 
@@ -206,9 +218,9 @@
             if (liFocused.length >0){
               var method = keyContainer == 'ms-selectable' ? 'select' : 'deselect';
               if (keyContainer == 'ms-selectable'){
-                that.select(liFocused.attr('id').replace('-selectable', ''));
+                that.select(liFocused.data('ms-value'));
               } else {
-                that.deselect(liFocused.attr('id').replace('-selection', ''));
+                that.deselect(liFocused.data('ms-value'));
               }
               lis.removeClass('ms-hover');
               that.scrollTo = 0;
@@ -273,17 +285,20 @@
         that.options.afterInit.call(this, this.$container);
       }
     },
+
     'refresh' : function() {
       $("#ms-"+this.$element.attr("id")).remove();
       this.init(this.options);
     },
+
     'select' : function(value, method){
       if (typeof value == 'string')
         value = [value]
       var that = this,
           ms = this.$element,
-          selectables = this.$selectableUl.find('#' + value.join('-selectable, #')+'-selectable').filter(':not(.'+that.options.disabledClass+')'),
-          selections = this.$selectionUl.find('#' + value.join('-selection, #') + '-selection'),
+          msIds = $.map(value, function(val, index){ return(that.sanitize(val)) }),
+          selectables = this.$selectableUl.find('#' + msIds.join('-selectable, #')+'-selectable').filter(':not(.'+that.options.disabledClass+')'),
+          selections = this.$selectionUl.find('#' + msIds.join('-selection, #') + '-selection'),
           options = ms.find('option').filter(function(index){ return($.inArray(this.value, value) > -1) });
 
       if (selectables.length > 0){
@@ -318,13 +333,15 @@
         }
       }
     },
+
     'deselect' : function(value){
       if (typeof value == 'string')
         value = [value]
       var that = this,
           ms = this.$element,
-          selectables = this.$selectableUl.find('#' + value.join('-selectable, #')+'-selectable'),
-          selections = this.$selectionUl.find('#' + value.join('-selection, #')+'-selection').filter('.ms-selected'),
+          msIds = $.map(value, function(val, index){ return(that.sanitize(val)) }),
+          selectables = this.$selectableUl.find('#' + msIds.join('-selectable, #')+'-selectable'),
+          selections = this.$selectionUl.find('#' + msIds.join('-selection, #')+'-selection').filter('.ms-selected'),
           options = ms.find('option').filter(function(index){ return($.inArray(this.value, value) > -1) });
 
       if (selections.length > 0){
@@ -357,6 +374,7 @@
         }
       }
     },
+
     'select_all' : function(){
       var ms = this.$element;
 
@@ -369,6 +387,7 @@
       this.$selectableUl.focusout();
       ms.trigger('change');
     },
+
     'deselect_all' : function(){
       var ms = this.$element;
 
@@ -381,6 +400,7 @@
       this.$selectionUl.focusout();
       ms.trigger('change');
     },
+
     isDomNode: function (attr){
       return (
         attr &&
@@ -388,6 +408,10 @@
         typeof attr.nodeType === "number" &&
         typeof attr.nodeName === "string"
       );
+    },
+
+    sanitize: function(value){
+      return(value.replace(/[^A-Za-z0-9]*/gi, '_'));
     }
   }
 
