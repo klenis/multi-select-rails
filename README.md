@@ -1,4 +1,4 @@
-# Multiselect 0.9.5 for Rails
+# Multiselect for Rails [![Gem Version](https://badge.fury.io/rb/multi-select-rails.png)](http://badge.fury.io/rb/multi-select-rails)
 
 [multi-select](https://github.com/lou/multi-select) is a tiny jQuery plugin to customize selects with the multiple attribute.
 
