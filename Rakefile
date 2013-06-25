@@ -3,9 +3,9 @@ task :update do
   system("rm -rf multi-select-src")
 
   system("git clone https://github.com/lou/multi-select.git multi-select-src")
-  system("cp multi-select-src/img/switch.png vendor/assets/images/switch.png")
-  system("cp multi-select-src/css/multi-select.css vendor/assets/stylesheets/multi-select.scss")
-  system("cp multi-select-src/js/jquery.multi-select.js vendor/assets/javascripts/multi-select.js")
+  system("cp multi-select-src/img/switch.png app/assets/images/switch.png")
+  system("cp multi-select-src/css/multi-select.css app/assets/stylesheets/multi-select.scss")
+  system("cp multi-select-src/js/jquery.multi-select.js app/assets/javascripts/multi-select.js")
 
   fixes
 
@@ -13,7 +13,7 @@ task :update do
 end
 
 def fixes
-  replace_string_in_file("vendor/assets/stylesheets/multi-select.scss", "url('../img/switch.png')", "image-url('switch.png')")
+  replace_string_in_file("app/assets/stylesheets/multi-select.scss", "url('../img/switch.png')", "image-url('switch.png')")
 end
 
 def replace_string_in_file(file, find, replace)
