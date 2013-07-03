@@ -1,5 +1,5 @@
 /*
-* MultiSelect v0.9.6
+* MultiSelect v0.9.8
 * Copyright (c) 2012 Louis Cuny
 *
 * This program is free software. It comes without any warranty, to
@@ -21,9 +21,7 @@
     this.options = options;
     this.$element = $(element);
 
-    var id = this.$element.attr('id');
-
-    this.$container = $('<div/>', { 'id': "ms-"+id, 'class': "ms-container" });
+    this.$container = $('<div/>', { 'class': "ms-container" });
     this.$selectableContainer = $('<div/>', { 'class': 'ms-selectable' });
     this.$selectionContainer = $('<div/>', { 'class': 'ms-selection' });
     this.$selectableUl = $('<ul/>', { 'class': "ms-list", 'tabindex' : '-1' });
@@ -42,105 +40,14 @@
 
       if (ms.next('.ms-container').length === 0){
         ms.css({ position: 'absolute', left: '-9999px' });
-        ms.attr('id', ms.attr('id') ? ms.attr('id') : 'ms-'+Math.ceil(Math.random()*1000));
+        ms.attr('id', ms.attr('id') ? ms.attr('id') : Math.ceil(Math.random()*1000)+'multiselect');
+        this.$container.attr('id', 'ms-'+ms.attr('id'));
 
-        var optgroupLabel = null,
-            optgroupId = null,
-            optgroupCpt = 0,
-            optgroupContainerTemplate = '<li class="ms-optgroup-container"></li>',
-            optgroupUlTemplate = '<ul class="ms-optgroup"></ul>',
-            optgroupLiTemplate = '<li class="ms-optgroup-label"><span></span></li>';
-
-        ms.find('optgroup, option').each(function(){
-          if ($(this).is('optgroup')){
-            optgroupLabel = '<span>'+$(this).attr('label')+'</span>';
-            optgroupId = 'ms-'+ms.attr('id')+'-optgroup-'+optgroupCpt;
-
-            var optgroup = $(this),
-                optgroupSelectable = $(optgroupContainerTemplate),
-                optgroupSelection = $(optgroupContainerTemplate),
-                optgroupSelectionLi = $(optgroupLiTemplate),
-                optgroupSelectableLi = $(optgroupLiTemplate);
-
-            if (that.options.selectableOptgroup){
-              optgroupSelectableLi.on('click', function(){
-                var values = optgroup.children(':not(:selected)').map(function(){ return $(this).val(); }).get();
-                that.select(values);
-              });
-
-              optgroupSelectionLi.on('click', function(){
-                var values = optgroup.children(':selected').map(function(){ return $(this).val(); }).get();
-                that.deselect(values);
-              });
-            }
-
-            optgroupSelectableLi.html(optgroupLabel);
-
-            optgroupSelectable.attr('id', optgroupId+'-selectable')
-              .append($(optgroupUlTemplate)
-                .append(optgroupSelectableLi));
-
-            that.$selectableUl.append(optgroupSelectable);
-
-            optgroupSelectionLi.html(optgroupLabel);
-
-            optgroupSelection.attr('id', optgroupId+'-selection')
-              .append($(optgroupUlTemplate)
-                .append(optgroupSelectionLi));
-
-            that.$selectionUl.append(optgroupSelection);
-
-            optgroupCpt++;
-
-          } else {
-
-            var attributes = "";
-
-            for (var cpt = 0; cpt < this.attributes.length; cpt++){
-              var attr = this.attributes[cpt];
-
-              if(that.isDomNode(attr.name)){
-                attributes += attr.name+'="'+attr.value+'" ';
-              }
-            }
-            var selectableLi = $('<li '+attributes+'><span>'+$(this).text()+'</span></li>'),
-                selectedLi = selectableLi.clone();
-
-            var value = $(this).val(),
-                msId = that.sanitize(value, that.sanitizeRegexp);
-
-            selectableLi
-              .data('ms-value', value)
-              .addClass('ms-elem-selectable')
-              .attr('id', msId+'-selectable');
-
-            selectedLi
-              .data('ms-value', value)
-              .addClass('ms-elem-selection')
-              .attr('id', msId+'-selection')
-              .hide();
-
-            that.$selectionUl.find('.ms-optgroup-label').hide();
-
-            if ($(this).prop('disabled') || ms.prop('disabled')){
-              if (this.selected) {
-                selectedLi.prop('disabled', true);
-                selectedLi.addClass(that.options.disabledClass);
-              } else {
-                selectableLi.prop('disabled', true);
-                selectableLi.addClass(that.options.disabledClass);
-              }
-            }
-
-            if (optgroupId){
-              that.$selectableUl.children('#'+optgroupId+'-selectable').find('ul').first().append(selectableLi);
-              that.$selectionUl.children('#'+optgroupId+'-selection').find('ul').first().append(selectedLi);
-            } else {
-              that.$selectableUl.append(selectableLi);
-              that.$selectionUl.append(selectedLi);
-            }
-          }
+        ms.find('option').each(function(){
+          that.generateLisFromOption(this);
         });
+
+        this.$selectionUl.find('.ms-optgroup-label').hide();
 
         if (that.options.selectableHeader){
           that.$selectableContainer.append(that.options.selectableHeader);
@@ -187,6 +94,79 @@
 
       if (typeof that.options.afterInit === 'function') {
         that.options.afterInit.call(this, this.$container);
+      }
+    },
+
+    'generateLisFromOption' : function(option){
+      var that = this,
+          ms = that.$element,
+          attributes = "",
+          $option = $(option);
+
+      for (var cpt = 0; cpt < option.attributes.length; cpt++){
+        var attr = option.attributes[cpt];
+
+        if(attr.name !== 'value'){
+          attributes += attr.name+'="'+attr.value+'" ';
+        }
+      }
+      var selectableLi = $('<li '+attributes+'><span>'+$option.text()+'</span></li>'),
+          selectedLi = selectableLi.clone(),
+          value = $option.val(),
+          elementId = that.sanitize(value, that.sanitizeRegexp);
+
+      selectableLi
+        .data('ms-value', value)
+        .addClass('ms-elem-selectable')
+        .attr('id', elementId+'-selectable');
+
+      selectedLi
+        .data('ms-value', value)
+        .addClass('ms-elem-selection')
+        .attr('id', elementId+'-selection')
+        .hide();
+
+      if ($option.prop('disabled') || ms.prop('disabled')){
+        selectedLi.addClass(that.options.disabledClass);
+        selectableLi.addClass(that.options.disabledClass);
+      }
+
+      var $optgroup = $option.parent('optgroup');
+
+      if ($optgroup.length > 0){
+        var optgroupLabel = $optgroup.attr('label'),
+            optgroupId = that.sanitize(optgroupLabel, that.sanitizeRegexp),
+            $selectableOptgroup = that.$selectableUl.find('#optgroup-selectable-'+optgroupId),
+            $selectionOptgroup = that.$selectionUl.find('#optgroup-selection-'+optgroupId);
+        
+        if ($selectableOptgroup.length === 0){
+          var optgroupContainerTpl = '<li class="ms-optgroup-container"></li>',
+              optgroupTpl = '<ul class="ms-optgroup"><li class="ms-optgroup-label"><span>'+optgroupLabel+'</span></li></ul>';
+          
+          $selectableOptgroup = $(optgroupContainerTpl);
+          $selectionOptgroup = $(optgroupContainerTpl);
+          $selectableOptgroup.attr('id', 'optgroup-selectable-'+optgroupId);
+          $selectionOptgroup.attr('id', 'optgroup-selection-'+optgroupId);
+          $selectableOptgroup.append($(optgroupTpl));
+          $selectionOptgroup.append($(optgroupTpl));
+          if (that.options.selectableOptgroup){
+            $selectableOptgroup.find('.ms-optgroup-label').on('click', function(){
+              var values = $optgroup.children(':not(:selected)').map(function(){ return $(this).val() }).get();
+              that.select(values);
+            });
+            $selectionOptgroup.find('.ms-optgroup-label').on('click', function(){
+              var values = $optgroup.children(':selected').map(function(){ return $(this).val() }).get();
+              that.deselect(values);
+            });
+          }
+          that.$selectableUl.append($selectableOptgroup);
+          that.$selectionUl.append($selectionOptgroup);
+        }
+        $selectableOptgroup.children().append(selectableLi);
+        $selectionOptgroup.children().append(selectedLi);
+      } else {
+        that.$selectableUl.append(selectableLi);
+        that.$selectionUl.append(selectedLi);
       }
     },
 
@@ -336,8 +316,8 @@
           ms = this.$element,
           msIds = $.map(value, function(val){ return(that.sanitize(val, that.sanitizeRegexp)); }),
           selectables = this.$selectableUl.find('#' + msIds.join('-selectable, #')+'-selectable').filter(':not(.'+that.options.disabledClass+')'),
-          selections = this.$selectionUl.find('#' + msIds.join('-selection, #') + '-selection'),
-          options = ms.find('option').filter(function(){ return($.inArray(this.value, value) > -1); });
+          selections = this.$selectionUl.find('#' + msIds.join('-selection, #') + '-selection').filter(':not(.'+that.options.disabledClass+')'),
+          options = ms.find('option:not(:disabled)').filter(function(){ return($.inArray(this.value, value) > -1); });
 
       if (selectables.length > 0){
         selectables.addClass('ms-selected').hide();
@@ -360,6 +340,10 @@
               $(this).find('.ms-optgroup-label').show();
             }
           });
+        } else {
+          if (that.options.keepOrder){
+            selections.insertAfter(that.$selectionUl.find('.ms-selected').last());  
+          }
         }
         if (method !== 'init'){
           ms.trigger('change');
@@ -413,11 +397,11 @@
       var ms = this.$element,
           values = ms.val();
 
-      ms.find('option').prop('selected', true);
-      this.$selectableUl.find('.ms-elem-selectable').addClass('ms-selected').hide();
+      ms.find('option:not(":disabled")').prop('selected', true);
+      this.$selectableUl.find('.ms-elem-selectable').filter(':not(.'+this.options.disabledClass+')').addClass('ms-selected').hide();
       this.$selectionUl.find('.ms-optgroup-label').show();
       this.$selectableUl.find('.ms-optgroup-label').hide();
-      this.$selectionUl.find('.ms-elem-selection').addClass('ms-selected').show();
+      this.$selectionUl.find('.ms-elem-selection').filter(':not(.'+this.options.disabledClass+')').addClass('ms-selected').show();
       this.$selectionUl.focus();
       ms.trigger('change');
       if (typeof this.options.afterSelect === 'function') {
@@ -442,15 +426,6 @@
       if (typeof this.options.afterDeselect === 'function') {
         this.options.afterDeselect.call(this, values);
       }
-    },
-
-    isDomNode: function (attr){
-      return (
-        attr &&
-        typeof attr === "object" &&
-        typeof attr.nodeType === "number" &&
-        typeof attr.nodeName === "string"
-      );
     },
 
     sanitize: function(value, reg){
@@ -483,7 +458,8 @@
   $.fn.multiSelect.defaults = {
     selectableOptgroup: false,
     disabledClass : 'disabled',
-    dblClick : false
+    dblClick : false,
+    keepOrder: false
   };
 
   $.fn.multiSelect.Constructor = MultiSelect;
