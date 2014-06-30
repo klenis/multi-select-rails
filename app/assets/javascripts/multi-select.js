@@ -1,5 +1,5 @@
 /*
-* MultiSelect v0.9.10
+* MultiSelect v0.9.11
 * Copyright (c) 2012 Louis Cuny
 *
 * This program is free software. It comes without any warranty, to
@@ -343,6 +343,7 @@
 
     'destroy' : function(){
       $("#ms-"+this.$element.attr("id")).remove();
+      this.$element.css('position', '').css('left', '')
       this.$element.removeData('multiselect');
     },
 
@@ -400,9 +401,8 @@
     },
 
     'deselect' : function(value, need_call_back){
-      console.log(value)
-      console.log(need_call_back)
       need_call_back = typeof need_call_back !== 'undefined' ? need_call_back : true;
+
       if (typeof value === 'string'){ value = [value]; }
 
       var that = this,
@@ -462,6 +462,7 @@
 
     'deselect_all' : function(need_call_back){
       need_call_back = typeof need_call_back !== 'undefined' ? need_call_back : true;
+
       var ms = this.$element,
           values = ms.val();
 
@@ -509,7 +510,6 @@
       if (typeof option === 'string'){
         data[option](args[1], args[2]);
       } else {
-
         data.init();
       }
     });
