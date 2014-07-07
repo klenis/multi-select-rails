@@ -33,6 +33,7 @@
     constructor: MultiSelect,
 
     init: function(){
+
       var that = this,
           ms = this.$element;
 
@@ -290,7 +291,7 @@
       }
       if ($nextElem.length > 0){
         $nextElem.addClass('ms-hover');
-        var scrollTo = $list.scrollTop() + $nextElem.position().top - 
+        var scrollTo = $list.scrollTop() + $nextElem.position().top -
                        containerHeight / 2 + elemHeight / 2;
 
         $list.scrollTop(scrollTo);
@@ -384,7 +385,7 @@
           });
         } else {
           if (that.options.keepOrder){
-            var selectionLiLast = that.$selectionUl.find('.ms-selected'); 
+            var selectionLiLast = that.$selectionUl.find('.ms-selected');
             if((selectionLiLast.length > 1) && (selectionLiLast.last().get(0) != selections.get(0))) {
               selections.insertAfter(selectionLiLast.last());
             }
@@ -399,7 +400,9 @@
       }
     },
 
-    'deselect' : function(value){
+    'deselect' : function(value, need_call_back){
+      need_call_back = typeof need_call_back !== 'undefined' ? need_call_back : true;
+
       if (typeof value === 'string'){ value = [value]; }
 
       var that = this,
@@ -432,7 +435,7 @@
           });
         }
         ms.trigger('change');
-        if (typeof that.options.afterDeselect === 'function') {
+        if (typeof that.options.afterDeselect === 'function' && need_call_back) {
           that.options.afterDeselect.call(this, value);
         }
       }
@@ -457,7 +460,9 @@
       }
     },
 
-    'deselect_all' : function(){
+    'deselect_all' : function(need_call_back){
+      need_call_back = typeof need_call_back !== 'undefined' ? need_call_back : true;
+
       var ms = this.$element,
           values = ms.val();
 
@@ -468,7 +473,7 @@
       this.$selectionUl.find('.ms-elem-selection').removeClass('ms-selected').hide();
       this.$selectableUl.focus();
       ms.trigger('change');
-      if (typeof this.options.afterDeselect === 'function') {
+      if (typeof this.options.afterDeselect === 'function' && need_call_back) {
         this.options.afterDeselect.call(this, values);
       }
     },
@@ -490,10 +495,12 @@
    * ======================= */
 
   $.fn.multiSelect = function () {
+
     var option = arguments[0],
         args = arguments;
 
     return this.each(function () {
+
       var $this = $(this),
           data = $this.data('multiselect'),
           options = $.extend({}, $.fn.multiSelect.defaults, $this.data(), typeof option === 'object' && option);
@@ -501,7 +508,7 @@
       if (!data){ $this.data('multiselect', (data = new MultiSelect(this, options))); }
 
       if (typeof option === 'string'){
-        data[option](args[1]);
+        data[option](args[1], args[2]);
       } else {
         data.init();
       }

@@ -25,16 +25,16 @@ Add to your `app/assets/javascripts/application.js`
 Add to your `app/assets/stylesheets/application.css`
 
     *= require multi-select
-    
+
 ## Updating the gem
 There are two rake tasks designed to ease the maintenance of this gem.
 
 The `update` task pulls the latest multi-select code from github and places images, stylesheets and javascripts in the correct gem paths. It also changes background-image properties in the stylesheet to asset pipeline equivalents.
 
 	rake update
-	
+
 The `build` task is a simple wrapper for `gem build`
-	
+
 	rake build
 
 
